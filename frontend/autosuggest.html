@@ -1,15 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Being Infinity</title>
+
+<style>
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    margin:0;
+    padding:0;
+    background:white;
+}
+.search-section{
+    text-align:center;
+    margin-top:80px;
+}
+
+.being{
+    color:#1a73e8;
+}
+
+.infinity{
+    color:#222;
+}
+
+.description{
+    font-size:28px;
+    color:#555;
+    margin-bottom:35px;
+}
+
+.search-container{
+    width:700px;
+    margin:auto;
+    position:relative;
+}
+
+.search-box{
+    display:flex;
+    align-items:center;
+    border:2px solid #555;
+    border-radius:40px;
+    padding:10px 20px;
+}
+
+.search-icon{
+    font-size:28px;
+    margin-right:15px;
+}
+
+.search-box input{
+    border:none;
+    outline:none;
+    width:100%;
+    font-size:22px;
+}
+
+#suggestion-box{
+    width:100%;
+    margin-top:5px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    background:white;
+    display:none;
+    max-height:300px;
+    overflow-y:auto;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+.suggestion-item{
+    padding:12px 18px;
+    cursor:pointer;
+    border-bottom:1px solid #eee;
+    font-size:18px;
+}
+
+.suggestion-item:hover{
+    background:#f3f3f3;
+}
+
+</style>
+
 </head>
+
 <body>
-    <p>&#9881 &bull; online| &#128339 -ms</p>
-    <h1>Being Infinity</h1>
-    <p>One million phrases .Four algorithms.prefix based Auto Suggest</p>
-    <span>&#128269</span>
-    <input type="text" id="search" placeholder="start typing to search">
+
+<div class="search-section">
+
+<h1 style="font-size:60px;">
+<span class="being">Being</span>
+<span class="infinity">Infinity</span>
+</h1>
+
+<p class="description">
+One million phrases. Four Algorithms. Prefix Based Auto Suggest
+</p>
+
+<div class="search-container">
+
+<div class="search-box">
+
+<span class="search-icon">🔍</span>
+
+<input
+type="text"
+id="search"
+placeholder="Start Typing to search">
+
+</div>
+
+<div id="suggestion-box"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const searchInput = document.getElementById("search");
+const suggestionBox = document.getElementById("suggestion-box");
+
+searchInput.addEventListener("input", async function(){
+
+    const query = searchInput.value.trim();
+
+    if(query===""){
+        suggestionBox.innerHTML="";
+        suggestionBox.style.display="none";
+        return;
+    }
+
+    try{
+
+        const url =
+        `https://autosuggest-backend.onrender.com/api/autosuggest?q=${encodeURIComponent(query)}&algorithm=brute&limit=10&weighted=false`;
+
+        const response = await fetch(url);
+
+        const data = await response.json();
+
+        console.log(data);
+
+        suggestionBox.innerHTML="";
+
+        let suggestions=[];
+
+        if(Array.isArray(data)){
+            suggestions=data;
+        }
+        else if(data.suggestions){
+            suggestions=data.suggestions;
+        }
+        else if(data.results){
+            suggestions=data.results;
+        }
+
+        if(suggestions.length===0){
+            suggestionBox.innerHTML="<div class='suggestion-item'>No Suggestions Found</div>";
+            suggestionBox.style.display="block";
+            return;
+        }
+
+        suggestions.forEach(item=>{
+
+            const text=item.phrase || item.text || item;
+
+            const div=document.createElement("div");
+
+            div.className="suggestion-item";
+
+            div.innerHTML="🔍 "+text;
+
+            div.onclick=function(){
+
+                searchInput.value=text;
+
+                suggestionBox.style.display="none";
+
+            };
+
+            suggestionBox.appendChild(div);
+
+        });
+
+        suggestionBox.style.display="block";
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        suggestionBox.innerHTML="<div class='suggestion-item'>Error loading suggestions</div>";
+
+        suggestionBox.style.display="block";
+
+    }
+
+});
+document.addEventListener("click",function(e){
+
+    if(!e.target.closest(".search-container")){
+        suggestionBox.style.display="none";
+    }
+});
+
+</script>
+
 </body>
 </html>
